@@ -1,0 +1,51 @@
+# West manifest for Adafruit Feather M0 (SAMD21) + RFM69HCW
+# Minimal module set for Atmel SAM0 builds
+
+manifest:
+  defaults:
+    remote: upstream
+
+  remotes:
+    - name: upstream
+      url-base: https://github.com/zephyrproject-rtos
+
+  group-filter: [-babblesim, -optional]
+
+  projects:
+    - name: zephyr
+      repo-path: zephyr
+      revision: v4.3.0
+      path: lib/zephyr-workspace/zephyr
+      west-commands: scripts/west-commands.yml
+      import:
+        name-allowlist:
+          - cmsis      # ARM CMSIS (required for Cortex-M)
+          - cmsis_6    # ARM CMSIS 6
+          - picolibc   # C library
+          - hal_atmel  # Atmel/Microchip SAMD21 HAL
+
+    - name: cmsis
+      revision: 512cc7e895e8491696b61f7ba8066b4a182569b8
+      path: lib/zephyr-workspace/modules/hal/cmsis
+      groups:
+        - hal
+
+    - name: cmsis_6
+      repo-path: CMSIS_6
+      revision: 06d952b6713a2ca41c9224a62075e4059402a151
+      path: lib/zephyr-workspace/modules/hal/cmsis_6
+      groups:
+        - hal
+
+    - name: picolibc
+      path: lib/zephyr-workspace/modules/lib/picolibc
+      revision: ca8b6ebba5226a75545e57a140443168a26ba664
+
+    - name: hal_atmel
+      revision: 065e57c5013051c8b7f2256271349c6942bd9344
+      path: lib/zephyr-workspace/modules/hal/atmel
+      groups:
+        - hal
+
+  self:
+    path: .

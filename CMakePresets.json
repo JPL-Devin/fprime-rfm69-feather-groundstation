@@ -1,0 +1,21 @@
+{
+    "version": 4,
+    "configurePresets": [
+    {
+      "name": "fprime-zephyr-feather-m0",
+      "displayName": "F´ Zephyr (adafruit_feather_m0_basic_proto)",
+      "description": "F´ release build for Adafruit Feather M0 + RFM69HCW",
+      "binaryDir": "${sourceDir}/build-fprime-automatic-zephyr",
+      "environment": {
+        "VIRTUAL_ENV": "${fileDir}/fprime-venv",
+        "PATH": "$env{VIRTUAL_ENV}/bin:$penv{PATH}"
+      },
+      "cacheVariables": {
+          "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+          "CMAKE_BUILD_TYPE": "Release",
+          "BOARD": "adafruit_feather_m0_basic_proto"
+      },
+      "toolchainFile": "${fileDir}/lib/fprime-zephyr/cmake/toolchain/zephyr.cmake",
+      "generator": "Ninja"
+    }]
+}

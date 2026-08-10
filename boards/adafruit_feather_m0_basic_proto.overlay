@@ -1,0 +1,45 @@
+/*
+ * Adafruit Feather M0 + RFM69HCW overlay
+ *
+ * Pinout matches the Adafruit Feather M0 RFM69HCW Packet Radio (and the
+ * Feather M0 LoRa radio pinout):
+ *   CS  = D8  = PA06
+ *   RST = D4  = PA08
+ *   IRQ = D3  = PA09 (RFM69 DIO0)
+ *   SPI = Feather hardware SPI on SERCOM4 (MISO/MOSI/SCK)
+ *
+ * Board target: adafruit_feather_m0_basic_proto
+ */
+
+&zephyr_udc0 {
+	cdc_acm_uart0: cdc_acm_uart0 {
+		compatible = "zephyr,cdc-acm-uart";
+	};
+};
+
+&sercom4 {
+	status = "okay";
+	cs-gpios = <&porta 6 GPIO_ACTIVE_LOW>;
+
+	rfm69: rfm69@0 {
+		compatible = "hoperf,rfm69hcw";
+		reg = <0>;
+		spi-max-frequency = <8000000>;
+		reset-gpios = <&porta 8 GPIO_ACTIVE_LOW>;
+		irq-gpios = <&porta 9 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+		label = "RFM69HCW";
+	};
+};
+
+/ {
+	chosen {
+		zephyr,console = &cdc_acm_uart0;
+		zephyr,shell-uart = &cdc_acm_uart0;
+	};
+
+	aliases {
+		rfm69 = &rfm69;
+		/* SPI controller used by the radio (for ZephyrSpiDriver) */
+		spi-rfm69 = &sercom4;
+	};
+};

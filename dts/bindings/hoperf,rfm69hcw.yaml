@@ -1,0 +1,23 @@
+# Copyright (c) 2026
+# SPDX-License-Identifier: Apache-2.0
+
+description: HopeRF RFM69HCW FSK/OOK transceiver (SPI)
+
+compatible: "hoperf,rfm69hcw"
+
+include: spi-device.yaml
+
+properties:
+  reset-gpios:
+    type: phandle-array
+    description: |
+      GPIO connected to the RFM69 RESET pin (active low on Feather M0 Radio).
+
+  irq-gpios:
+    type: phandle-array
+    description: |
+      GPIO connected to RFM69 DIO0 / IRQ (packet sent / payload ready).
+
+  label:
+    type: string
+    description: Human-readable name for the radio instance.
