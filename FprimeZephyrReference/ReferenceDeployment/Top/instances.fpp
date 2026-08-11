@@ -1,46 +1,34 @@
 module ReferenceDeployment {
 
-  # ----------------------------------------------------------------------
-  # Base ID Convention
-  # ----------------------------------------------------------------------
-  #
-  # All Base IDs follow the 8-digit hex format: 0xDSSCCxxx
-  #
-  # Where:
-  #   D   = Deployment digit (1 for this deployment)
-  #   SS  = Subtopology digits (00 for main topology)
-  #   CC  = Component digits
-  #   xxx = Reserved for internal component items
-  #
-
-  # ----------------------------------------------------------------------
-  # Defaults — sized for ATSAMD21G18A (32 KiB RAM)
-  # ----------------------------------------------------------------------
-
   module Default {
-    constant QUEUE_SIZE = 3
-    constant STACK_SIZE = 1024 # Must match prj.conf thread stack size
+    constant QUEUE_SIZE = 2
+    # Must not exceed CONFIG_DYNAMIC_THREAD_STACK_SIZE (the pool stack size);
+    # this requested size is what bounds the usable stack depth.
+    constant STACK_SIZE = 4096
   }
 
-  # ----------------------------------------------------------------------
-  # Active component instances
-  # ----------------------------------------------------------------------
-
-  instance rateGroup1Hz: Svc.ActiveRateGroup base id 0x10002000 \
+  # The only active component: the 1 kHz rate group task runs the radio poll
+  # and the complete uplink/downlink bridging chains, so it gets the full
+  # dynamic-pool stack slot. Zephyr priorities are inverted: lower is higher.
+  instance rateGroup1KHz: Svc.ActiveRateGroup base id 0x20001000 \
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
     priority 4
 
-  # ----------------------------------------------------------------------
-  # Passive component instances
-  # ----------------------------------------------------------------------
+  # Passive scheduling/platform components
+  instance chronoTime: Zephyr.ZephyrTime base id 0x20010000
+  instance rateGroupDriver: Svc.RateGroupDriver base id 0x20011000
+  instance timer: Zephyr.ZephyrRateDriver base id 0x20012000
+  instance bridgeUart: Zephyr.ZephyrUartDriver base id 0x20013000
+  instance radioSpi: Zephyr.ZephyrSpiDriver base id 0x20015000
+  instance radioReset: Zephyr.ZephyrGpioDriver base id 0x20016000
+  instance nullPrmDb: Components.NullPrmDb base id 0x20017000
 
-  instance chronoTime: Zephyr.ZephyrTime base id 0x10010000
-
-  instance rateGroupDriver: Svc.RateGroupDriver base id 0x10011000
-
-  instance timer: Zephyr.ZephyrRateDriver base id 0x10013000
-
-  instance comDriver: Zephyr.ZephyrUartDriver base id 0x10014000
-
+  # Communication components
+  instance commsBufferManager: Svc.BufferManager base id 0x20020000
+  instance frameAccumulator: Svc.FrameAccumulator base id 0x20021000
+  instance bridgeDeframer: Svc.FprimeDeframer base id 0x20022000
+  instance bridgeFramer: Svc.FprimeFramer base id 0x20023000
+  instance bridgeComStub: Svc.ComStub base id 0x20025000
+  instance rfm69Manager: Rfm69.Rfm69Manager base id 0x20027000
 }

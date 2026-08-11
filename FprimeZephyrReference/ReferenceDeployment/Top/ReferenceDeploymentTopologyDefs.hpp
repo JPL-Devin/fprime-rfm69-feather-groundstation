@@ -1,22 +1,23 @@
 // ======================================================================
 // \title  ReferenceDeploymentTopologyDefs.hpp
-// \brief required header file containing the required definitions for the topology autocoder
+// \brief  Ground-station topology state and platform definitions
 // ======================================================================
 #ifndef REFERENCEDEPLOYMENT_REFERENCEDEPLOYMENTTOPOLOGYDEFS_HPP
 #define REFERENCEDEPLOYMENT_REFERENCEDEPLOYMENTTOPOLOGYDEFS_HPP
 
 #include "FprimeZephyrReference/ReferenceDeployment/Top/FppConstantsAc.hpp"
-#include <zephyr/drivers/uart.h>
+#include <zephyr/device.h>
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/spi.h>
 
-// Definitions are placed within a namespace named after the deployment
 namespace ReferenceDeployment {
 
-/**
- * \brief required type definition to carry state
- */
 struct TopologyState {
-    const device* uartDevice; //!< UART device for communication
-    U32 baudRate;             //!< Baud rate for UART communication
+    const struct device* bridgeUartDevice;
+    U32 bridgeBaudRate;
+    const struct device* radioSpiDevice;
+    struct spi_config radioSpiConfig;
+    struct gpio_dt_spec radioReset;
 };
 
 }  // namespace ReferenceDeployment

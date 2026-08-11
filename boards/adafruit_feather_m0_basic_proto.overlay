@@ -14,6 +14,8 @@
 &zephyr_udc0 {
 	cdc_acm_uart0: cdc_acm_uart0 {
 		compatible = "zephyr,cdc-acm-uart";
+		rx-fifo-size = <512>;
+		tx-fifo-size = <512>;
 	};
 };
 
@@ -24,8 +26,9 @@
 	rfm69: rfm69@0 {
 		compatible = "hoperf,rfm69hcw";
 		reg = <0>;
-		spi-max-frequency = <8000000>;
-		reset-gpios = <&porta 8 GPIO_ACTIVE_LOW>;
+		/* Conservative clock for initial ground-station hardware validation. */
+		spi-max-frequency = <1000000>;
+		reset-gpios = <&porta 8 GPIO_ACTIVE_HIGH>;
 		irq-gpios = <&porta 9 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
 		label = "RFM69HCW";
 	};

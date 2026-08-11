@@ -36,7 +36,6 @@ add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/FprimeZephyrReference")
 set(_FEATHER_EXCLUDE_TARGETS
     Svc_FatalHandler
     fprime-zephyr_Drv_LoRa
-    fprime-sensors_Rfm69_Components_Rfm69Manager
     fprime-sensors_Rfm69_Components_Rfm69Sim
     fprime-sensors_Rfm69_Subtopology
     fprime-sensors_Rfm69_Subtopology_Rfm69Config
@@ -63,17 +62,11 @@ set(_FEATHER_EXCLUDE_TARGETS
     Svc_Health
     Svc_TlmPacketizer
     Svc_AssertFatalAdapter
-    Svc_EventManager
     Svc_CmdDispatcher
     Svc_Version
-    Svc_ComQueue
     Svc_ComAggregator
-    Svc_ComStub
-    Svc_BufferManager
-    Svc_FrameAccumulator
+
     Svc_FprimeRouter
-    Svc_FprimeFramer
-    Svc_FprimeDeframer
     Svc_PassiveConsoleTextLogger
     Svc_Ccsds_ApidManager
     Svc_Ccsds_SpacePacketDeframer

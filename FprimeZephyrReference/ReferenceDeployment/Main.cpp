@@ -1,32 +1,36 @@
 // ======================================================================
 // \title  Main.cpp
-// \brief main program for the F' application. Intended for CLI-based systems (Linux, macOS)
-//
+// \brief  Feather M0 RFM69 ground-station entry point
 // ======================================================================
-// Used to access topology functions
+
 #include <FprimeZephyrReference/ReferenceDeployment/Top/ReferenceDeploymentTopology.hpp>
 #include <Os/Os.hpp>
-#include <zephyr/sys/printk.h>
 #include <zephyr/kernel.h>
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/spi.h>
 
-const struct device *serial = DEVICE_DT_GET(DT_NODELABEL(cdc_acm_uart0));
+namespace {
+const struct device* const BRIDGE_UART = DEVICE_DT_GET(DT_NODELABEL(cdc_acm_uart0));
+const struct spi_dt_spec RADIO_SPI =
+    SPI_DT_SPEC_GET(DT_NODELABEL(rfm69), SPI_WORD_SET(8) | SPI_TRANSFER_MSB | SPI_LOCK_ON);
+const struct gpio_dt_spec RADIO_RESET =
+    GPIO_DT_SPEC_GET(DT_NODELABEL(rfm69), reset_gpios);
+}  // namespace
 
 int main(int argc, char* argv[]) {
-    // ** DO NOT REMOVE **//
-    //
-    // This sleep is necessary to allow the USB CDC ACM interface to initialize before
-    // the application starts writing to it.
+    // Allow the USB CDC device to enumerate before topology startup.
     k_sleep(K_MSEC(3000));
-    
     Os::init();
-    // Object for communicating state to the topology
-    ReferenceDeployment::TopologyState inputs;
-    inputs.uartDevice = serial;
-    inputs.baudRate = 115200;
- 
-    // Setup, cycle, and teardown topology
-    ReferenceDeployment::setupTopology(inputs);
-    ReferenceDeployment::startRateGroups(); // Program loop
-    ReferenceDeployment::teardownTopology(inputs);
+
+    ReferenceDeployment::TopologyState state{};
+    state.bridgeUartDevice = BRIDGE_UART;
+    state.bridgeBaudRate = 115200;
+    state.radioSpiDevice = RADIO_SPI.bus;
+    state.radioSpiConfig = RADIO_SPI.config;
+    state.radioReset = RADIO_RESET;
+
+    ReferenceDeployment::setupTopology(state);
+    ReferenceDeployment::startRateGroups();
+    ReferenceDeployment::teardownTopology(state);
     return 0;
 }
