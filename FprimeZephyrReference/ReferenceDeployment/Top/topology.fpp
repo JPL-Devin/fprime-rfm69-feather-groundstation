@@ -13,6 +13,7 @@ module ReferenceDeployment {
     instance radioSpi
     instance radioReset
     instance nullPrmDb
+    instance textLogger
     instance commsBufferManager
     instance frameAccumulator
     instance bridgeDeframer
@@ -22,23 +23,32 @@ module ReferenceDeployment {
 
     param connections instance nullPrmDb
     time connections instance chronoTime
+    text event connections instance textLogger
 
     connections RateGroups {
       timer.CycleOut -> rateGroupDriver.CycleIn
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup1KHz] -> rateGroup1KHz.CycleIn
 
-      # Service RF first, then UART. All bridging runs on this one thread;
-      # packets are dropped rather than queued when the radio is busy.
+      # Service RF first, then UART. All bridging runs on this one thread.
+      # Without ComQueue, Rfm69Manager holds up to two uplink frames when the
+      # radio is busy/holdoff and retries from run(); UART TX is staged and
+      # drained across schedIn ticks so radio polling is not blocked.
       rateGroup1KHz.RateGroupMemberOut[0] -> rfm69Manager.run
       rateGroup1KHz.RateGroupMemberOut[1] -> bridgeUart.schedIn
     }
 
     connections Hardware {
-      rfm69Manager.spiWriteRead -> radioSpi.SpiWriteRead
-      rfm69Manager.resetGpio -> radioReset.gpioWrite
+   
     }
 
     connections BufferManagement {
+
+    }
+
+    connections FlightUplink {
+      rfm69Manager.spiWriteRead -> radioSpi.SpiWriteRead
+      rfm69Manager.resetGpio -> radioReset.gpioWrite
+
       bridgeUart.allocate -> commsBufferManager.bufferGetCallee
       bridgeUart.deallocate -> commsBufferManager.bufferSendIn
       frameAccumulator.bufferAllocate -> commsBufferManager.bufferGetCallee
@@ -46,10 +56,9 @@ module ReferenceDeployment {
       bridgeFramer.bufferAllocate -> commsBufferManager.bufferGetCallee
       bridgeFramer.bufferDeallocate -> commsBufferManager.bufferSendIn
       rfm69Manager.allocate -> commsBufferManager.bufferGetCallee
-      rfm69Manager.deallocate -> commsBufferManager.bufferSendIn
-    }
+      rfm69Manager.deallocate -> commsBufferManager.bufferSendIn     
 
-    connections FlightUplink {
+
       # USB CDC byte stream -> complete F Prime frames -> raw packets to RF.
       bridgeUart.$recv -> bridgeComStub.drvReceiveIn
       bridgeComStub.drvReceiveReturnOut -> bridgeUart.recvReturnIn
@@ -60,22 +69,21 @@ module ReferenceDeployment {
       frameAccumulator.dataOut -> bridgeDeframer.dataIn
       bridgeDeframer.dataReturnOut -> frameAccumulator.dataReturnIn
 
-      # Direct handoff: the manager stages one packet or drops it immediately.
       bridgeDeframer.dataOut -> rfm69Manager.dataIn
       rfm69Manager.dataReturnOut -> bridgeDeframer.dataReturnIn
-    }
 
-    connections FlightDownlink {
       # Raw RF packet -> F Prime frame -> USB CDC, all on the rate-group task.
       rfm69Manager.dataOut -> bridgeFramer.dataIn
       bridgeFramer.dataReturnOut -> rfm69Manager.dataReturnIn
       bridgeFramer.dataOut -> bridgeComStub.dataIn
       bridgeComStub.dataReturnOut -> bridgeFramer.dataReturnIn
-      # ComStub's status output is unguarded and must stay connected; the
-      # framer forwards status only if its own output is connected (it is not).
       bridgeComStub.comStatusOut -> bridgeFramer.comStatusIn
 
       bridgeComStub.drvSendOut -> bridgeUart.$send
+    }
+
+    connections FlightDownlink {
+
     }
   }
 }

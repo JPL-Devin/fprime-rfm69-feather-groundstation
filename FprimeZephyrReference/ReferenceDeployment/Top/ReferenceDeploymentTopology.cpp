@@ -28,11 +28,20 @@ void configureTopology(const TopologyState& state) {
     rateGroupDriver.configure(rateGroupDivisors);
     rateGroup1KHz.configure(rateGroup1KHzContext);
 
+    // Text events go out SERCOM0 (FTDI) via blocking printk on the caller's
+    // thread (the 1 kHz bridge). Printing WARNING_HI RateGroupCycleSlip here
+    // feeds a slip storm — keep COMMAND/ACTIVITY for FTDI debug, mute warnings.
+    textLogger.setSeverityFilter(Fw::LogSeverity::WARNING_HI, false);
+    textLogger.setSeverityFilter(Fw::LogSeverity::WARNING_LO, false);
+    textLogger.setSeverityFilter(Fw::LogSeverity::DIAGNOSTIC, false);
+
     Svc::BufferManagerComponentImpl::BufferBins bins{};
+    // Extra UART fragments absorb CDC bursts while the radio holds uplink;
+    // extra frame bins cover deframe + pending-TX hold + downlink framer.
     bins.bins[0].bufferSize = UART_FRAGMENT_SIZE;
-    bins.bins[0].numBuffers = 2;
+    bins.bins[0].numBuffers = 4;
     bins.bins[1].bufferSize = MAX_FPRIME_FRAME_SIZE;
-    bins.bins[1].numBuffers = 5;
+    bins.bins[1].numBuffers = 8;
     commsBufferManager.setup(201, 0, allocator, bins);
 
     frameAccumulator.configure(fprimeFrameDetector, 0, allocator, FRAME_ACCUMULATOR_SIZE);

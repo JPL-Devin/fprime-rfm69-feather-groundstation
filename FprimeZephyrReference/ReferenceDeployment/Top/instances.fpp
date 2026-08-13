@@ -8,8 +8,8 @@ module ReferenceDeployment {
   }
 
   # The only active component: the 1 kHz rate group task runs the radio poll
-  # and the complete uplink/downlink bridging chains, so it gets the full
-  # dynamic-pool stack slot. Zephyr priorities are inverted: lower is higher.
+  # and the complete uplink/downlink bridging chains.
+  # Zephyr priorities are inverted: lower is higher.
   instance rateGroup1KHz: Svc.ActiveRateGroup base id 0x20001000 \
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
@@ -23,6 +23,9 @@ module ReferenceDeployment {
   instance radioSpi: Zephyr.ZephyrSpiDriver base id 0x20015000
   instance radioReset: Zephyr.ZephyrGpioDriver base id 0x20016000
   instance nullPrmDb: Components.NullPrmDb base id 0x20017000
+
+  # Text events to Zephyr console (SERCOM0 / FTDI)
+  instance textLogger: Svc.PassiveTextLogger base id 0x20018000
 
   # Communication components
   instance commsBufferManager: Svc.BufferManager base id 0x20020000

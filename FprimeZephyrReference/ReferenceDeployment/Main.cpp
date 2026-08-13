@@ -11,8 +11,11 @@
 
 namespace {
 const struct device* const BRIDGE_UART = DEVICE_DT_GET(DT_NODELABEL(cdc_acm_uart0));
+// No SPI_LOCK_ON: the radio is the only device on this bus, and the Zephyr
+// driver tracks the lock owner by config pointer, which deadlocks when the
+// F Prime SPI driver passes per-call copies of the configuration.
 const struct spi_dt_spec RADIO_SPI =
-    SPI_DT_SPEC_GET(DT_NODELABEL(rfm69), SPI_WORD_SET(8) | SPI_TRANSFER_MSB | SPI_LOCK_ON);
+    SPI_DT_SPEC_GET(DT_NODELABEL(rfm69), SPI_WORD_SET(8) | SPI_TRANSFER_MSB);
 const struct gpio_dt_spec RADIO_RESET =
     GPIO_DT_SPEC_GET(DT_NODELABEL(rfm69), reset_gpios);
 }  // namespace
@@ -30,6 +33,9 @@ int main(int argc, char* argv[]) {
     state.radioReset = RADIO_RESET;
 
     ReferenceDeployment::setupTopology(state);
+    // FTDI/SERCOM0 console liveness marker (Pi /dev/ttyUSB0). Keep watching
+    // that capture while debugging — GDS does not show ground text events.
+    printk("[GS] topology ready; text events on SERCOM0 @ 115200\n");
     ReferenceDeployment::startRateGroups();
     ReferenceDeployment::teardownTopology(state);
     return 0;
