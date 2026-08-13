@@ -17,12 +17,44 @@ Uplink:   GDS --F´ frame over USB CDC--> UART driver -> frame accumulator
 
 Downlink: radio (space packet) -> SERCOM4 SPI -> RFM69 manager -> F´ framer
           -> UART driver --F´ frame over USB CDC--> GDS
+
+Ground events (text console):
+  component text events -> PassiveTextLogger -> Fw::Logger -> printk
+  -> Zephyr UART console on SERCOM0 (D1/TX) --FTDI--> host serial (e.g. Pi)
 ```
 
-Everything runs on a single 1 kHz active rate group task: the radio poll first,
-then USB receive. There are deliberately no queues; if the radio is busy when
-an uplink frame arrives, the frame is dropped. Uplink is therefore best-effort:
-confirm commands via downlinked telemetry and resend on loss.
+Flight bridging runs on a single 1 kHz active rate group task: radio poll first,
+then USB receive. There is no ComQueue: when the radio is busy the manager holds
+up to two complete uplink frames and retries once the channel is clear (Arduino
+RadioHead-style). USB TX is staged and drained across UART sched ticks so radio
+polling is not blocked by full-frame `uart_poll_out`. Ground events are plain
+text on the FTDI UART (no GDS required).
+
+## Interfaces
+
+| Session | Feather interface | Baud | Format |
+|---|---|---:|---|
+| Flight traffic | USB CDC (`/dev/cu.usbmodem…`) | 115200 | F´ frames (`space-packet-fprime` GDS plugin) |
+| Ground events | D1/TX (PA10, SERCOM0) → FTDI RX (+ GND) | 115200 | plain text (`EVENT: …`) |
+
+Ground events are TX-only from the Feather. **Always capture them on the Pi FTDI
+while debugging the F´ GS** (GDS does not show these events):
+
+```sh
+# Preferred: persistent capture on the Pi (survives SSH disconnect)
+./tools/pi_ftdi_events.sh start
+./tools/pi_ftdi_events.sh status   # recent non-slip lines + slip count
+./tools/pi_ftdi_events.sh tail     # follow /tmp/feather-events.log
+
+# Manual one-shot
+ssh pi@192.168.10.2
+stty -F /dev/ttyUSB0 115200 raw -echo
+cat /dev/ttyUSB0
+```
+
+`SendFailed`, configuration errors, and rate-group slips show up here. Note that
+printing every `RateGroupCycleSlip` on this UART can itself amplify slips (blocking
+`printk` on the bridge thread) — use `status`/`tail` when iterating GS changes.
 
 ## Radio and timing
 
@@ -108,8 +140,9 @@ fprime-gds --no-app \
 ```
 
 Use the dictionary produced by the exact flight build. Run only one GDS
-instance at a time: multiple instances collide on the shared ZeroMQ IPC
-sockets (`/tmp/fprime-server-*`) and silently misroute commands.
+instance per serial device. Multiple flight GDS instances collide on the
+shared ZeroMQ IPC sockets (`/tmp/fprime-server-*`) and silently misroute
+commands.
 
 If macOS leaves the USB CDC device blocked after a GDS process is interrupted,
 unplug/replug or physically reset the Feather before flashing or restarting

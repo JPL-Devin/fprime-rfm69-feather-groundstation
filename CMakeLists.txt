@@ -67,7 +67,7 @@ set(_FEATHER_EXCLUDE_TARGETS
     Svc_ComAggregator
 
     Svc_FprimeRouter
-    Svc_PassiveConsoleTextLogger
+    Svc_EventManager
     Svc_Ccsds_ApidManager
     Svc_Ccsds_SpacePacketDeframer
     Svc_Ccsds_SpacePacketFramer

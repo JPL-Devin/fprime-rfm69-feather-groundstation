@@ -34,10 +34,15 @@
 	};
 };
 
+/* SERCOM0 UART on D0/RX (PA11) and D1/TX (PA10): text event console to FTDI. */
+&sercom0 {
+	status = "okay";
+};
+
 / {
 	chosen {
-		zephyr,console = &cdc_acm_uart0;
-		zephyr,shell-uart = &cdc_acm_uart0;
+		zephyr,console = &sercom0;
+		zephyr,shell-uart = &sercom0;
 	};
 
 	aliases {
