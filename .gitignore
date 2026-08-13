@@ -22,3 +22,5 @@ build
 **/__pycache__/
 **/*.egg-info/
 
+# fpp extension
+.fpp-lsp
