@@ -35,10 +35,12 @@ add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/FprimeZephyrReference")
 # ---------------------------------------------------------------------------
 set(_FEATHER_EXCLUDE_TARGETS
     Svc_FatalHandler
+    # Requires true lock-free std::atomic; the Zephyr shim is spinlock-based
+    Os_Generic_LocklessPriorityQueue
+    Os_Generic_LocklessPriorityQueue_Implementation
     fprime-zephyr_Drv_LoRa
+    fprime-zephyr_Drv_ZephyrADCDriver
     fprime-sensors_Rfm69_Components_Rfm69Sim
-    fprime-sensors_Rfm69_Subtopology
-    fprime-sensors_Rfm69_Subtopology_Rfm69Config
     # File / DP / CCSDS stacks (not in the minimal topology; PORT macro clash)
     Svc_FileDownlink
     Svc_FileUplink

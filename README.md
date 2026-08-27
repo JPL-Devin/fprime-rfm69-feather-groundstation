@@ -124,13 +124,13 @@ After a successful reset, the application enumerates after about three seconds.
 ## Run the GDS
 
 The Feather exchanges F´ frames whose payload is a CCSDS space packet, so the
-GDS needs the framing plugin in `tools/gds_space_packet_fprime.py` (stock GDS
-framing does one layer or the other, never nested):
+GDS needs the `space-packet-fprime` framing plugin in `gds-plugin/` (stock GDS
+framing does one layer or the other, never nested). Install it once into the
+GDS virtualenv and it registers itself via the `fprime_gds` entry point:
 
 ```sh
 source fprime-venv/bin/activate
-export PYTHONPATH="$PWD/tools:$PYTHONPATH"
-export FPRIME_GDS_EXTRA_PLUGINS="gds_space_packet_fprime:SpacePacketFprimeFramerDeframer"
+pip install ./gds-plugin
 
 fprime-gds --no-app \
   --dictionary ../fprime-soak-test-reference/build-artifacts/aarch64-linux/FprimeSoakTestReference_FprimeSoakTestReferenceDeployment/dict/FprimeSoakTestReferenceDeploymentTopologyDictionary.json \

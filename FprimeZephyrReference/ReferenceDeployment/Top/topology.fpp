@@ -4,7 +4,7 @@ module ReferenceDeployment {
     rateGroup1KHz
   }
 
-  topology ReferenceDeployment {
+  deployment topology ReferenceDeployment {
     instance chronoTime
     instance rateGroup1KHz
     instance rateGroupDriver
