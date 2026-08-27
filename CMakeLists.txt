@@ -43,6 +43,16 @@ set(_FEATHER_EXCLUDE_TARGETS
     fprime-sensors_Rfm69_Components_Rfm69Sim
     fprime-sensors_Rfm69_Subtopology
     fprime-sensors_Rfm69_Subtopology_Rfm69Config
+    # Linux-driver sensor subtopologies; removable once the fprime-sensors pin
+    # includes the upstream EXCLUDE_FROM_ALL subtopology change
+    fprime-sensors_Bmp280_Subtopology
+    fprime-sensors_Bmp280_Subtopology_Bmp280Config
+    fprime-sensors_MpuImu_Subtopology
+    fprime-sensors_MpuImu_Subtopology_MpuImuConfig
+    fprime-sensors_NmeaGps_Subtopology
+    fprime-sensors_NmeaGps_Subtopology_NmeaGpsSubtopologyConfig
+    fprime-sensors_XBee_Subtopology
+    fprime-sensors_XBee_Subtopology_XBeeConfig
     # File / DP / CCSDS stacks (not in the minimal topology; PORT macro clash)
     Svc_FileDownlink
     Svc_FileUplink
